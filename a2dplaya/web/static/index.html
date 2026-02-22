@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>A2DPlaya</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a2e;
+            --text-primary: #e0e0ff;
+            --text-secondary: #8888aa;
+            --accent: #6c5ce7;
+            --accent-glow: rgba(108, 92, 231, 0.4);
+            --success: #00cec9;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+            --eq-1: #e74c3c;
+            --eq-2: #e67e22;
+            --eq-3: #f1c40f;
+            --eq-4: #2ecc71;
+            --eq-5: #1abc9c;
+            --eq-6: #3498db;
+            --eq-7: #2980b9;
+            --eq-8: #9b59b6;
+            --eq-9: #8e44ad;
+            --eq-10: #e74c3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-bottom: 1px solid rgba(108, 92, 231, 0.2);
+        }
+
+        .app-header h1 {
+            font-size: 1.8em;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .app-header .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-top: 4px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            padding: 8px;
+            background: var(--bg-secondary);
+            font-size: 0.8em;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+
+        .status-dot.active { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .status-dot.error { background: var(--danger); }
+
+        /* EQ Visualizer */
+        .eq-container {
+            padding: 20px;
+            background: var(--bg-secondary);
+            margin: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(108, 92, 231, 0.15);
+        }
+
+        .eq-bars {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 120px;
+            gap: 6px;
+            padding: 0 10px;
+        }
+
+        .eq-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 50px;
+        }
+
+        .eq-bar {
+            width: 100%;
+            min-height: 4px;
+            border-radius: 3px 3px 0 0;
+            transition: height 0.08s ease-out;
+            position: relative;
+        }
+
+        .eq-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .eq-bar:nth-child(1) .eq-bar, .eq-bar-wrapper:nth-child(1) .eq-bar { background: linear-gradient(to top, var(--eq-1), #ff6b6b); }
+        .eq-bar-wrapper:nth-child(2) .eq-bar { background: linear-gradient(to top, var(--eq-2), #ffa502); }
+        .eq-bar-wrapper:nth-child(3) .eq-bar { background: linear-gradient(to top, var(--eq-3), #ffd32a); }
+        .eq-bar-wrapper:nth-child(4) .eq-bar { background: linear-gradient(to top, var(--eq-4), #7bed9f); }
+        .eq-bar-wrapper:nth-child(5) .eq-bar { background: linear-gradient(to top, var(--eq-5), #70a1ff); }
+        .eq-bar-wrapper:nth-child(6) .eq-bar { background: linear-gradient(to top, var(--eq-6), #70a1ff); }
+        .eq-bar-wrapper:nth-child(7) .eq-bar { background: linear-gradient(to top, var(--eq-7), #5352ed); }
+        .eq-bar-wrapper:nth-child(8) .eq-bar { background: linear-gradient(to top, var(--eq-8), #cf6a87); }
+        .eq-bar-wrapper:nth-child(9) .eq-bar { background: linear-gradient(to top, var(--eq-9), #a55eea); }
+        .eq-bar-wrapper:nth-child(10) .eq-bar { background: linear-gradient(to top, var(--eq-10), #ff6b6b); }
+
+        .eq-label {
+            font-size: 0.6em;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* Volume Control */
+        .volume-section {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 16px;
+        }
+
+        .volume-icon { font-size: 1.2em; }
+
+        .volume-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: var(--bg-card);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .volume-value {
+            min-width: 36px;
+            text-align: right;
+            font-size: 0.9em;
+        }
+
+        /* Cards / Sections */
+        .section {
+            margin: 16px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid rgba(108, 92, 231, 0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: rgba(108, 92, 231, 0.05);
+            border-bottom: 1px solid rgba(108, 92, 231, 0.1);
+            cursor: pointer;
+        }
+
+        .section-header h2 {
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .section-body { padding: 12px 16px; }
+
+        .section-body.collapsed { display: none; }
+
+        /* Device List */
+        .device-list { list-style: none; }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .device-item:last-child { border-bottom: none; }
+
+        .device-name {
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .device-status {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #7c6cf7;
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.75em;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Source selector */
+        .source-tabs {
+            display: flex;
+            gap: 0;
+            margin: 16px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(108, 92, 231, 0.1);
+        }
+
+        .source-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .source-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--text-secondary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .eq-bars { height: 80px; gap: 4px; }
+            .section { margin: 8px; }
+            .app-header h1 { font-size: 1.4em; }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85em;
+        }
+
+        .connection-info {
+            text-align: center;
+            padding: 8px;
+            font-size: 0.75em;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <h1>A2DPlaya</h1>
+        <div class="subtitle">Bluetooth Audio Bridge</div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-dot" id="bt-status"></span>
+            <span>Bluetooth</span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot" id="cast-status"></span>
+            <span>Chromecast</span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot" id="airplay-status"></span>
+            <span>AirPlay</span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot" id="audio-status"></span>
+            <span>Audio</span>
+        </div>
+    </div>
+
+    <!-- EQ Visualizer -->
+    <div class="eq-container">
+        <div class="eq-bars" id="eq-bars">
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-0"></div><span class="eq-label">31</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-1"></div><span class="eq-label">62</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-2"></div><span class="eq-label">125</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-3"></div><span class="eq-label">250</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-4"></div><span class="eq-label">500</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-5"></div><span class="eq-label">1k</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-6"></div><span class="eq-label">2k</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-7"></div><span class="eq-label">4k</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-8"></div><span class="eq-label">8k</span></div>
+            <div class="eq-bar-wrapper"><div class="eq-bar" id="eq-9"></div><span class="eq-label">16k</span></div>
+        </div>
+    </div>
+
+    <!-- Volume -->
+    <div class="volume-section">
+        <span class="volume-icon">&#128264;</span>
+        <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="100">
+        <span class="volume-value" id="volume-value">100%</span>
+    </div>
+
+    <!-- Source Tabs -->
+    <div class="source-tabs">
+        <button class="source-tab active" data-source="bluetooth">Bluetooth</button>
+        <button class="source-tab" data-source="linein">Line In</button>
+    </div>
+
+    <!-- Bluetooth Section -->
+    <div class="section" id="bt-section">
+        <div class="section-header" onclick="toggleSection('bt-body')">
+            <h2>Bluetooth Devices</h2>
+            <div class="btn-group">
+                <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); btScan()">Scan</button>
+                <button class="btn btn-outline btn-small" onclick="event.stopPropagation(); btDiscoverable()">Make Discoverable</button>
+            </div>
+        </div>
+        <div class="section-body" id="bt-body">
+            <ul class="device-list" id="bt-devices">
+                <li class="empty-state">No devices found. Tap Scan to search.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Output Targets -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection('cast-body')">
+            <h2>Chromecast</h2>
+            <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); castDiscover()">Discover</button>
+        </div>
+        <div class="section-body" id="cast-body">
+            <ul class="device-list" id="cast-devices">
+                <li class="empty-state">No Chromecast devices found. Tap Discover.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header" onclick="toggleSection('airplay-body')">
+            <h2>AirPlay</h2>
+            <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); airplayDiscover()">Discover</button>
+        </div>
+        <div class="section-body" id="airplay-body">
+            <ul class="device-list" id="airplay-devices">
+                <li class="empty-state">No AirPlay devices found. Tap Discover.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Line-In Section -->
+    <div class="section" id="linein-section" style="display:none;">
+        <div class="section-header">
+            <h2>Line-In Input</h2>
+            <div class="btn-group">
+                <button class="btn btn-primary btn-small" onclick="lineInStart()">Start</button>
+                <button class="btn btn-danger btn-small" onclick="lineInStop()">Stop</button>
+            </div>
+        </div>
+        <div class="section-body" id="linein-body">
+            <ul class="device-list" id="linein-devices">
+                <li class="empty-state">Loading audio input devices...</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="connection-info">
+        <span id="connection-status">Connecting...</span>
+    </div>
+
+    <script>
+        // --- State ---
+        let eqSource = null;
+        let pollInterval = null;
+
+        // --- EQ Visualization via SSE ---
+        function startEqStream() {
+            if (eqSource) eqSource.close();
+            eqSource = new EventSource('/api/eq/stream');
+            eqSource.onmessage = function(e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    updateEqBars(data);
+                } catch(err) {}
+            };
+            eqSource.onerror = function() {
+                // Fallback to polling
+                eqSource.close();
+                eqSource = null;
+                startPolling();
+            };
+        }
+
+        function updateEqBars(levels) {
+            for (let i = 0; i < 10; i++) {
+                const bar = document.getElementById('eq-' + i);
+                if (bar) {
+                    const height = Math.max(4, levels[i] * 120);
+                    bar.style.height = height + 'px';
+                }
+            }
+        }
+
+        // --- Polling fallback ---
+        function startPolling() {
+            if (pollInterval) return;
+            pollInterval = setInterval(fetchStatus, 500);
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                updateUI(data);
+                document.getElementById('connection-status').textContent = 'Connected';
+            } catch(err) {
+                document.getElementById('connection-status').textContent = 'Disconnected - retrying...';
+            }
+        }
+
+        function updateUI(data) {
+            // Update status dots
+            const btDot = document.getElementById('bt-status');
+            const castDot = document.getElementById('cast-status');
+            const airplayDot = document.getElementById('airplay-status');
+            const audioDot = document.getElementById('audio-status');
+
+            if (data.bluetooth && data.bluetooth.connected_device) {
+                btDot.classList.add('active');
+            } else {
+                btDot.classList.remove('active');
+            }
+
+            if (data.cast && data.cast.streaming) {
+                castDot.classList.add('active');
+            } else {
+                castDot.classList.remove('active');
+            }
+
+            if (data.airplay && data.airplay.streaming) {
+                airplayDot.classList.add('active');
+            } else {
+                airplayDot.classList.remove('active');
+            }
+
+            if (data.audio && data.audio.source) {
+                audioDot.classList.add('active');
+            } else {
+                audioDot.classList.remove('active');
+            }
+
+            // Update EQ from status if SSE not available
+            if (!eqSource && data.eq_data) {
+                updateEqBars(data.eq_data);
+            }
+
+            // Update volume
+            if (data.audio) {
+                const slider = document.getElementById('volume-slider');
+                const display = document.getElementById('volume-value');
+                const vol = Math.round((data.audio.volume || 0) * 100);
+                if (document.activeElement !== slider) {
+                    slider.value = vol;
+                    display.textContent = vol + '%';
+                }
+            }
+        }
+
+        // --- Volume ---
+        document.getElementById('volume-slider').addEventListener('input', function() {
+            const val = this.value;
+            document.getElementById('volume-value').textContent = val + '%';
+            fetch('/api/volume', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({volume: val / 100})
+            });
+        });
+
+        // --- Source Tabs ---
+        document.querySelectorAll('.source-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const source = this.dataset.source;
+                document.getElementById('bt-section').style.display = source === 'bluetooth' ? '' : 'none';
+                document.getElementById('linein-section').style.display = source === 'linein' ? '' : 'none';
+                if (source === 'linein') loadLineInDevices();
+            });
+        });
+
+        // --- Section toggle ---
+        function toggleSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('collapsed');
+        }
+
+        // --- Bluetooth ---
+        async function btScan() {
+            try {
+                await fetch('/api/bluetooth/scan', {method: 'POST'});
+                setTimeout(loadBtDevices, 3000);
+                setTimeout(loadBtDevices, 8000);
+                setTimeout(loadBtDevices, 15000);
+            } catch(err) { console.error(err); }
+        }
+
+        async function btDiscoverable() {
+            try {
+                await fetch('/api/bluetooth/discoverable', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({enabled: true})
+                });
+            } catch(err) { console.error(err); }
+        }
+
+        async function loadBtDevices() {
+            try {
+                const res = await fetch('/api/bluetooth/devices');
+                const data = await res.json();
+                renderBtDevices(data.devices || []);
+            } catch(err) {}
+        }
+
+        function renderBtDevices(devices) {
+            const list = document.getElementById('bt-devices');
+            if (!devices.length) {
+                list.innerHTML = '<li class="empty-state">No devices found. Tap Scan to search.</li>';
+                return;
+            }
+            list.innerHTML = devices.map(d => `
+                <li class="device-item">
+                    <div>
+                        <div class="device-name">${escHtml(d.name)}</div>
+                        <div class="device-status">${d.address} - ${d.connected ? 'Connected' : d.paired ? 'Paired' : 'Available'}</div>
+                    </div>
+                    <div class="btn-group">
+                        ${!d.paired ? `<button class="btn btn-primary btn-small" onclick="btPair('${d.address}')">Pair</button>` : ''}
+                        ${d.paired && !d.connected ? `<button class="btn btn-primary btn-small" onclick="btConnect('${d.address}')">Connect</button>` : ''}
+                        ${d.connected ? `<button class="btn btn-danger btn-small" onclick="btDisconnect('${d.address}')">Disconnect</button>` : ''}
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        async function btPair(addr) {
+            await fetch('/api/bluetooth/pair', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({address: addr})
+            });
+            setTimeout(loadBtDevices, 2000);
+        }
+
+        async function btConnect(addr) {
+            await fetch('/api/bluetooth/connect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({address: addr})
+            });
+            setTimeout(loadBtDevices, 2000);
+        }
+
+        async function btDisconnect(addr) {
+            await fetch('/api/bluetooth/disconnect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({address: addr})
+            });
+            setTimeout(loadBtDevices, 1000);
+        }
+
+        // --- Chromecast ---
+        async function castDiscover() {
+            try {
+                const res = await fetch('/api/cast/discover', {method: 'POST'});
+                const data = await res.json();
+                renderCastDevices(data.devices || []);
+            } catch(err) { console.error(err); }
+        }
+
+        function renderCastDevices(devices) {
+            const list = document.getElementById('cast-devices');
+            if (!devices.length) {
+                list.innerHTML = '<li class="empty-state">No Chromecast devices found.</li>';
+                return;
+            }
+            list.innerHTML = devices.map(d => `
+                <li class="device-item">
+                    <div>
+                        <div class="device-name">${escHtml(d.name)}</div>
+                        <div class="device-status">${d.host} - ${d.model || 'Chromecast'} - ${d.status}</div>
+                    </div>
+                    <div class="btn-group">
+                        ${d.status !== 'playing' ?
+                            `<button class="btn btn-primary btn-small" onclick="castPlay('${escAttr(d.name)}')">Cast</button>` :
+                            `<button class="btn btn-danger btn-small" onclick="castStop()">Stop</button>`}
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        async function castPlay(name) {
+            await fetch('/api/cast/play', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({device: name})
+            });
+            setTimeout(castDiscover, 3000);
+        }
+
+        async function castStop() {
+            await fetch('/api/cast/stop', {method: 'POST'});
+            setTimeout(castDiscover, 1000);
+        }
+
+        // --- AirPlay ---
+        async function airplayDiscover() {
+            try {
+                const res = await fetch('/api/airplay/discover', {method: 'POST'});
+                const data = await res.json();
+                renderAirplayDevices(data.devices || []);
+            } catch(err) { console.error(err); }
+        }
+
+        function renderAirplayDevices(devices) {
+            const list = document.getElementById('airplay-devices');
+            if (!devices.length) {
+                list.innerHTML = '<li class="empty-state">No AirPlay devices found.</li>';
+                return;
+            }
+            list.innerHTML = devices.map(d => `
+                <li class="device-item">
+                    <div>
+                        <div class="device-name">${escHtml(d.name)}</div>
+                        <div class="device-status">${d.host}:${d.port} - ${d.status}</div>
+                    </div>
+                    <div class="btn-group">
+                        ${d.status !== 'playing' ?
+                            `<button class="btn btn-primary btn-small" onclick="airplayPlay('${escAttr(d.name)}')">Play</button>` :
+                            `<button class="btn btn-danger btn-small" onclick="airplayStop()">Stop</button>`}
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        async function airplayPlay(name) {
+            await fetch('/api/airplay/play', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({device: name})
+            });
+            setTimeout(airplayDiscover, 3000);
+        }
+
+        async function airplayStop() {
+            await fetch('/api/airplay/stop', {method: 'POST'});
+            setTimeout(airplayDiscover, 1000);
+        }
+
+        // --- Line-In ---
+        async function loadLineInDevices() {
+            try {
+                const res = await fetch('/api/linein/devices');
+                const data = await res.json();
+                const list = document.getElementById('linein-devices');
+                const devices = data.devices || [];
+                if (!devices.length) {
+                    list.innerHTML = '<li class="empty-state">No audio input devices found.</li>';
+                    return;
+                }
+                list.innerHTML = devices.map(d => `
+                    <li class="device-item">
+                        <div>
+                            <div class="device-name">${escHtml(d.name)}</div>
+                            <div class="device-status">${d.id}</div>
+                        </div>
+                        <button class="btn btn-primary btn-small" onclick="lineInStart('${escAttr(d.id)}')">Use</button>
+                    </li>
+                `).join('');
+            } catch(err) {}
+        }
+
+        async function lineInStart(device) {
+            const body = device ? {device: device} : {};
+            await fetch('/api/linein/start', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+        }
+
+        async function lineInStop() {
+            await fetch('/api/linein/stop', {method: 'POST'});
+        }
+
+        // --- Utilities ---
+        function escHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function escAttr(s) {
+            return s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        // --- Init ---
+        startEqStream();
+        startPolling();
+        fetchStatus();
+        loadBtDevices();
+    </script>
+</body>
+</html>

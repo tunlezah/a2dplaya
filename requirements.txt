@@ -1,0 +1,17 @@
+# A2DPlaya - Core dependencies
+# Most are optional; the application degrades gracefully when not available
+
+# Web server
+flask>=2.0
+
+# Chromecast support (optional)
+pychromecast>=13.0
+
+# mDNS/Zeroconf for device discovery (optional, used by Cast and AirPlay)
+zeroconf>=0.80
+
+# Bluetooth D-Bus bindings (optional, falls back to bluetoothctl CLI)
+# dbus-python>=1.2  # System package recommended: apt install python3-dbus
+
+# ALSA audio capture (optional, falls back to arecord CLI)
+# pyalsaaudio>=0.9  # System package recommended: apt install python3-alsaaudio
